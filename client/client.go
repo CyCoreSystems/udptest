@@ -2,27 +2,36 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net"
-	"os"
+	"strconv"
 	"time"
 )
 
-var messageCount = 10000
-var name = "cc1.cycoresys.com"
-var port = "10100"
+var name string
+var port int
+var messageCount int
+
+func init() {
+	flag.StringVar(&name, "host", "", "host is the echo server to which we should connect")
+	flag.IntVar(&port, "port", 10100, "port defines the UDP port to which we should connect")
+	flag.IntVar(&messageCount, "count", 100, "count is the number of datagrams to send")
+}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if len(os.Args) > 1 {
-		name = os.Args[1]
+	flag.Parse()
+
+	if name == "" {
+		log.Fatal("host is a required parameter")
 	}
 
-	nameport := name + ":" + port
+	nameport := name + ":" + strconv.Itoa(port)
 
 	conn, err := net.Dial("udp", nameport)
 	if err != nil {

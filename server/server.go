@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"net"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -47,23 +47,20 @@ func (s *SourceCounter) Report() {
 	s.mu.Unlock()
 }
 
+var bindInterface string
+var bindPort int
+
+func init() {
+	flag.StringVar(&bindInterface, "i", "::", "i is the interface IP to which to bind")
+	flag.IntVar(&bindPort, "p", 10100, "p is the UDP port to which to bind")
+}
+
 func main() {
 	var err error
 
-	ip := "::"
-	if len(os.Args) > 1 {
-		ip = os.Args[1]
-	}
+	flag.Parse()
 
-	port := 10100
-	if len(os.Args) > 2 {
-		port, err = strconv.Atoi(os.Args[2])
-		if err != nil {
-			log.Fatalln("failed to parse port as a number:", err)
-		}
-	}
-
-	addr := net.UDPAddr{Port: port, IP: net.ParseIP(ip)}
+	addr := net.UDPAddr{Port: bindPort, IP: net.ParseIP(bindInterface)}
 
 	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
